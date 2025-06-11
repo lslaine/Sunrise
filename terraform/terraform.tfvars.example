@@ -1,0 +1,6 @@
+project_id        = "your-gcp-project-id"
+project_number    = "123456789012"
+project_name      = "your-project-name"
+github_repository = "your-org/your-repo"
+region            = "europe-west4"
+# db_password is passed via GitHub Secrets
