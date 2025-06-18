@@ -39,6 +39,10 @@ Before you begin, make sure you have the following tools installed and configure
   Install from [https://git-scm.com/downloads](https://git-scm.com/downloads) and verify with `git --version`
 * **(Optional) Flutter** (for running the frontend app, optional at initial backend deployment)
   Install from [https://docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install) and verify with `flutter --version`
+* **(Optional) Firebase CLI**
+  Install from [https://firebase.google.com/docs/cli#install_the_firebase_cli](https://firebase.google.com/docs/cli#install_the_firebase_cli) and login to the CLI `firebase login`
+* **(Optional) Activate flutterfire CLI globally** (for initiating Firebase configuration in Flutter project)
+  Run this command `dart pub global activate flutterfire_cli`. This will install the CLI and make it available as a global tool.
 * **(Optional) Docker** (for building container images locally)
   Install from [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/) and verify with `docker version`
 
@@ -143,7 +147,7 @@ After successful apply (or partial success):
 
 After the infrastructure is successfully provisioned (even partially), switch to using the remote backend.
 
-If not already set correctly, update the bucket name in backend.tf to match the GCS bucket created during provisioning:
+If not already set correctly, update the bucket name in backend.tf to match the GCS bucket created during provisioning by replacing `<your-project-id>`:
 
 ```hcl
 terraform {
@@ -251,15 +255,89 @@ After deployment, check in **Google Cloud Console → Cloud Run → Your service
 
 ---
 
-### 6. (Optional) Connect Flutter Frontend to Backend
+### 6. (Optional) Connect Flutter Frontend to Backend + Firebase Authentication
 
-In `flutter_app/lib/main.dart`, update:
+To enable secure access to your private Cloud Run backend, we integrate Firebase Authentication into the Flutter app and send authenticated requests using Firebase ID tokens.
 
-```dart
-static const String backendUrl = '<your-cloud-run-url>';
+---
+
+#### 🔐 Enable Firebase Authentication Manually
+
+##### ✅ How to Manually Enable Firebase in the Console
+
+1. **Go to the Firebase Console**
+   👉 [https://console.firebase.google.com/](https://console.firebase.google.com/)
+
+2. **Click "Add project"** (or select your existing GCP project)
+
+3. **Click "Add Firebase to your Google Cloud project"**  
+   > Use the **same GCP project** you used in your `terraform.tfvars`.
+
+4. **Click "Continue"** and follow the setup prompts  
+   > Confirm billing and API access when asked
+
+5. **Enable Firebase Authentication**
+
+   * In the Firebase Console navigate to **Build → Authentication**
+   * Click **"Get Started"**
+   * Under **Sign-in method**, enable **Google**
+   * Click **Save**
+
+---
+
+#### 🧰 Configure `flutterfire` CLI
+
+If you haven’t yet, install the FlutterFire CLI:
+
+```bash
+dart pub global activate flutterfire_cli
 ```
 
-Run the Flutter app:
+Then log in to Firebase:
+
+```bash
+firebase login
+```
+
+Now configure your Flutter app to use Firebase:
+
+```bash
+cd flutter_app
+flutterfire configure
+```
+
+Follow the prompts:
+
+* Select your Firebase project
+* Choose your platform(s) — **android**, **ios**, **web** etc.
+* Provide your app ID (e.g., `com.example.app`)
+
+> This generates `lib/firebase_options.dart` and sets up the native platform configs.
+
+---
+
+#### 🔧 Update Your Flutter Code
+
+In your `lib/main.dart`:
+
+* Uncomment the `import 'firebase_options.dart';` & `
+* Update the Firebase initialization:
+
+```dart
+await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
+```
+
+* Replace this constant with your deployed Cloud Run URL:
+
+```dart
+static const String backendUrl = '<CLOUD_RUN_URL>';
+```
+
+---
+
+#### 🚀 Run the App
 
 ```bash
 cd flutter_app
@@ -267,26 +345,34 @@ flutter pub get
 flutter run
 ```
 
-Ensure frontend uses **authenticated requests** (via Firebase auth or other method supported by Cloud Run). For development or manual testing, use the steps below.
+Make sure:
+
+✅ You’ve replaced `<CLOUD_RUN_URL>` with your deployed Cloud Run endpoint
+✅ You’re signed in with a Google account that Firebase recognizes
+✅ Firebase project has Authentication → Google Sign-In enabled
 
 ---
 
 ## 🧪 Test the Deployment
 
-Since Cloud Run backend is **private**, direct browser access will result in **403 Forbidden**. You can test the backend with an authenticated request:
+This Cloud Run backend is **secured using Firebase Authentication** — all main routes require a valid Firebase ID token in the `Authorization` header.
 
-### Use `curl` with Identity Token (from local machine)
+### 🔓 Public Health Check
+
+You can test whether the service is deployed correctly by accessing the public `/test` path in (<your-cloud-run-url>/test) browser or as below:
 
 ```bash
 CLOUD_RUN_URL="<your-cloud-run-url>"
 
-curl -H "Authorization: Bearer $(gcloud auth print-identity-token)" "$CLOUD_RUN_URL"
-```
+curl "$CLOUD_RUN_URL/test"
+````
 
 Expected output:
 
 ```
-Hello, World from Sunrise + MySQL!
+OK TEST
 ```
+
+This endpoint does **not** require authentication and can be used for basic connectivity checks.
 
 ---

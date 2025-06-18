@@ -31,6 +31,12 @@ resource "google_project_iam_member" "cloud_run_sql_client" {
   member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
 }
 
+resource "google_project_iam_member" "cloud_run_firebase_auth" {
+  project = var.project_id
+  role    = "roles/firebaseauth.admin"
+  member  = "serviceAccount:${google_service_account.cloud_run_sa.email}"
+}
+
 resource "google_artifact_registry_repository" "default_backend" {
   location      = var.region
   repository_id = "${var.project_name}-backend"
@@ -117,6 +123,7 @@ resource "google_cloud_run_service" "default" {
   depends_on = [
     google_project_service.run,
     google_project_iam_member.cloud_run_sql_client,
+    google_project_iam_member.cloud_run_firebase_auth,
     google_artifact_registry_repository.default_backend
   ]
 }
@@ -135,4 +142,13 @@ resource "google_storage_bucket" "terraform_state" {
       type = "Delete"
     }
   }
+}
+
+resource "google_cloud_run_service_iam_member" "public_invoker" {
+  location = google_cloud_run_service.default.location
+  project  = var.project_id
+  service  = google_cloud_run_service.default.name
+
+  role   = "roles/run.invoker"
+  member = "allUsers"
 }

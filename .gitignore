@@ -1,5 +1,8 @@
 # Flutter/Dart/Pub related
 .dart_tool/
+pubspec.lock
+package-lock.json
+.flutter*
 
 # Terraform related
 .terraform/
