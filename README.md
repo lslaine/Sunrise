@@ -251,8 +251,6 @@ This triggers GitHub Actions, which:
 
 After deployment, check in **Google Cloud Console → Cloud Run → Your service → URL**
 
-> ⚠️ **Note:** The backend is private by default (not publicly accessible). Only authenticated requests will succeed.
-
 ---
 
 ### 6. (Optional) Connect Flutter Frontend to Backend + Firebase Authentication
@@ -285,7 +283,7 @@ To enable secure access to your private Cloud Run backend, we integrate Firebase
 
 ---
 
-#### 🧰 Configure `flutterfire` CLI
+#### 🔧 Configure `flutterfire` CLI
 
 If you haven’t yet, install the FlutterFire CLI:
 
@@ -348,7 +346,9 @@ flutter run
 Make sure:
 
 ✅ You’ve replaced `<CLOUD_RUN_URL>` with your deployed Cloud Run endpoint
+
 ✅ You’re signed in with a Google account that Firebase recognizes
+
 ✅ Firebase project has Authentication → Google Sign-In enabled
 
 ---

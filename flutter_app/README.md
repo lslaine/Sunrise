@@ -45,7 +45,7 @@ To enable secure access to your private Cloud Run backend, we integrate Firebase
 
 ---
 
-#### 🧰 Configure `flutterfire` CLI
+#### 🔧 Configure `flutterfire` CLI
 
 If you haven’t yet, install the FlutterFire CLI:
 
@@ -108,7 +108,9 @@ flutter run
 Make sure:
 
 ✅ You’ve replaced `<CLOUD_RUN_URL>` with your deployed Cloud Run endpoint
+
 ✅ You’re signed in with a Google account that Firebase recognizes
+
 ✅ Firebase project has Authentication → Google Sign-In enabled
 
 ---
